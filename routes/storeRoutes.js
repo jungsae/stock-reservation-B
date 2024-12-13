@@ -11,7 +11,7 @@ router.get("/", authMiddleware, StoreController.getStores);
 router.post("/login", StoreController.login)
 router.post("/signup", StoreController.create)
 router.put("/:id", StoreController.update);
-router.delete("/deactivate", authMiddleware, StoreController.deactivate);
 router.delete("/:id", authMiddleware, adminMiddleware, StoreController.delete);
+router.delete("/deactivate", authMiddleware, StoreController.deactivate);
 
 module.exports = router;

@@ -102,15 +102,22 @@ class StoreService {
     }
 
     // 매장 비활(관리자용)
+    // static async deleteStore(store_id) {
+    //     const store = await StoreDao.findById(store_id);
+    //     if (!store) {
+    //         throw new Error(`Store with id ${store_id} not found`);
+    //     }
+
+    //     // 계정 비활성화
+    //     await StoreDao.update(store_id, { is_active: false });
+    //     return { message: "Account deactivated successfully" };
+    // }
     static async deleteStore(store_id) {
-        const store = await StoreDao.findById(store_id);
+        const store = await StoreDao.delete(store_id);
         if (!store) {
             throw new Error(`Store with id ${store_id} not found`);
         }
-
-        // 계정 비활성화
-        await StoreDao.update(store_id, { is_active: false });
-        return { message: "Account deactivated successfully" };
+        return { message: "Account successfully deleted!" };
     }
 }
 

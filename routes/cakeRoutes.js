@@ -5,7 +5,7 @@ const adminMiddleware = require("../middlewares/adminMiddleware");
 
 const router = express.Router();
 
-router.get("/", authMiddleware, adminMiddleware, CakeController.getAll);
+router.get("/", authMiddleware, CakeController.getAll);
 router.get("/:id", authMiddleware, adminMiddleware, CakeController.getOne);
 router.post("/", authMiddleware, adminMiddleware, CakeController.create);
 router.put("/:id", authMiddleware, adminMiddleware, CakeController.update);

@@ -165,6 +165,10 @@ class ReservationService {
     static async deleteReservation(store_id, reservation_id) {
         const reservation = await ReservationDao.findWithCakes(reservation_id);
 
+        if (reservation.pickup_status === 'cancelled') {
+            throw new Error(`이미 취소된 예약입니다!`)
+        }
+
         if (!reservation || reservation.store_id !== store_id) {
             throw new Error(`Reservation with ID ${reservation_id} not found or unauthorized`);
         }
