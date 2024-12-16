@@ -25,7 +25,10 @@ class ReservationService {
 
         if (startDate && endDate) {
             whereCondition.pickup_date = {
-                [Op.between]: [new Date(startDate), new Date(endDate)],
+                [Op.between]: [
+                    new Date(`${startDate}T00:00:00Z`),
+                    new Date(`${endDate}T23:59:59Z`)
+                ],
             };
         } else if (startDate) {
             whereCondition.pickup_date = { [Op.gte]: new Date(startDate) };
@@ -90,6 +93,10 @@ class ReservationService {
         if (!reservation) {
             throw new Error(`Reservation with ID ${reservation_id} not found`);
         }
+
+        // if (status === "pending") {
+
+        // }
 
         return await ReservationDao.updatePickupStatus(reservation_id, status);
     }
