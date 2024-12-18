@@ -1,4 +1,4 @@
-const CustomError = require("../middlewares/cutomError");
+const CustomError = require("../middlewares/CustomError");
 const StoreCakeDao = require("../models/StoreCakeDao");
 
 class storeCakeService {
@@ -72,18 +72,18 @@ class storeCakeService {
 
     // 케이크 재고 수정
     static async updateStock(store_id, store_cake_id, stock) {
-        if (stock < 0) {
-            throw { status: 400, message: "Stock cannot be negative" };
-        }
-
         const storeCake = await StoreCakeDao.findById(store_cake_id);
 
         if (!storeCake) {
-            throw { status: 404, message: `StoreCake with id ${store_cake_id} not found` };
+            throw new CustomError("해당 케이크가 존재하지 않습니다.", "CAKE_NOT_FOUND", 404);
+        }
+
+        if (stock < 0) {
+            throw new CustomError("재고는 0 이상이어야 합니다.", "INVALID_STOCK", 400);
         }
 
         if (storeCake.store_id !== store_id) {
-            throw { status: 403, message: "You are not authorized to modify this cake" };
+            throw new CustomError("해당 케이크를 수정할 권한이 없습니다.", "FORBIDDEN", 403);
         }
 
         return await StoreCakeDao.update(store_cake_id, { stock });

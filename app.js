@@ -5,6 +5,7 @@ require("dotenv").config();
 
 const { initialDatabase } = require("./models")
 const routes = require("./routes");
+const errorHandler = require("./middlewares/errorHandler");
 
 const app = express();
 
@@ -16,6 +17,8 @@ app.get("/ping", (req, res) => res.json({ message: "pong" }));
 
 app.use(routes);
 
+app.use(errorHandler);
+
 const PORT = process.env.PORT || 3000;
 initialDatabase()
     .then(() => {
@@ -26,5 +29,15 @@ initialDatabase()
     })
     .catch((err) => {
         console.error("Failed to initialize database:", err);
-        process.exit(1); // 데이터베이스 초기화 실패 시 서버 실행 중단
+        process.exit(1);
     });
+
+process.on('SIGINT', () => {
+    console.log('Received SIGINT. Shutting down...');
+    process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+    console.log('Received SIGTERM. Shutting down...');
+    process.exit(0);
+});

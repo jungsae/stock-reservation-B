@@ -1,4 +1,5 @@
 const storeCakeService = require("../services/storeCakeService");
+const CustomError = require("../middlewares/CustomError");
 
 class storeCakeController {
     // 매장별 / 모든 케이크 가져오기
@@ -48,13 +49,13 @@ class storeCakeController {
             const { stock } = req.body;
 
             if (stock == null) {
-                return res.status(400).json({ message: "Stock is required" });
+                throw new CustomError("Stock is required", "INVALID_INPUT", 400);
             }
 
             const updatedCake = await storeCakeService.updateStock(req.store_id, id, stock);
             res.json(updatedCake);
         } catch (error) {
-            res.status(error.status || 500).json({ message: error.message });
+            next(error); // 에러 핸들러로 전달
         }
     }
 

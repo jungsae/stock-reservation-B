@@ -3,6 +3,7 @@ const ReservationCakeDao = require("../models/ReservationCakeDao");
 const StoreCakeDao = require("../models/StoreCakeDao");
 const { checkAndUpdateStock } = require("../utils/stockChecker")
 const { Op } = require("sequelize");
+const CustomError = require("../middlewares/CustomError");
 
 class ReservationService {
     static async getAllReservations() {
@@ -57,35 +58,41 @@ class ReservationService {
         const { customer_name, customer_phone, pickup_date, pickup_time, cakes, total_price } = data;
 
         if (!cakes || cakes.length === 0) {
-            throw new Error("Cakes are required for reservation");
+            throw new CustomError("Cakes are required for reservation", "CAKES_REQUIRED", 400);
         }
+        try {
 
-        const cakeChanges = new Map();
+            const cakeChanges = new Map();
+            for (const cake of cakes) {
+                cakeChanges.set(cake.id, { difference: cake.quantity });
+            }
 
-        for (const cake of cakes) {
-            cakeChanges.set(cake.id, { difference: cake.quantity });
-        }
+            await checkAndUpdateStock(store_id, cakeChanges);
 
-        await checkAndUpdateStock(store_id, cakeChanges);
-
-        const reservation = await ReservationDao.create({
-            customer_name,
-            customer_phone,
-            store_id,
-            pickup_date,
-            pickup_time,
-            total_price,
-        });
-
-        for (const cake of cakes) {
-            await ReservationCakeDao.create({
-                reservation_id: reservation.id,
-                cake_id: cake.id,
-                quantity: cake.quantity,
+            const reservation = await ReservationDao.create({
+                customer_name,
+                customer_phone,
+                store_id,
+                pickup_date,
+                pickup_time,
+                total_price,
             });
-        }
 
-        return reservation;
+            for (const cake of cakes) {
+                await ReservationCakeDao.create({
+                    reservation_id: reservation.id,
+                    cake_id: cake.id,
+                    quantity: cake.quantity,
+                });
+            }
+
+            return reservation;
+        } catch (error) {
+            if (!(error instanceof CustomError)) {
+                throw new CustomError(error.message, "INTERNAL_SERVER_ERROR", 500);
+            }
+            throw error;
+        }
     }
 
     static async updatePickupStatus(reservation_id, status) {
