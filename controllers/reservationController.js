@@ -1,4 +1,5 @@
 const ReservationService = require("../services/reservationService");
+const CustomError = require('../middlewares/CustomError')
 
 class ReservationController {
     static async getAll(req, res, next) {

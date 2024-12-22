@@ -21,8 +21,17 @@ class CakeDao {
         return await Cake.update(data, { where: { id } });
     }
 
-    static async delete(id) {
-        return await Cake.destroy({ where: { id } });
+    static async delete(id, options = {}) {
+        // ID 값 검증
+        if (typeof id !== "number" || isNaN(id)) {
+            throw new Error("Invalid ID provided for deletion");
+        }
+
+        // 삭제 작업
+        return await Cake.destroy({
+            where: { id }, // ID 조건
+            ...options, // 추가 옵션
+        });
     }
 }
 

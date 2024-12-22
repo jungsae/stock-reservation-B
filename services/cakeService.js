@@ -1,3 +1,4 @@
+const { sequelize } = require("../config/db");
 const CakeDao = require("../models/CakeDao");
 
 class CakeService {
@@ -20,7 +21,6 @@ class CakeService {
             throw new Error("Name and price are required");
         }
 
-        // 중복 검증
         const existingCake = await CakeDao.findByName(name);
         if (existingCake) {
             throw new Error(`Cake with name "${name}" already exists`);
@@ -41,13 +41,28 @@ class CakeService {
         }
     }
 
-    static async delete(id) {
+    static async delete(id, userRole) {
         const cake = await CakeDao.findById(id);
         if (!cake) {
             throw new Error(`Cake with id ${id} not found`);
         }
 
-        return await CakeDao.delete(id);
+        if (userRole === "ADMIN") {
+            const transaction = await sequelize.transaction();
+            try {
+                await sequelize.query('PRAGMA foreign_keys=OFF', { transaction });
+                await CakeDao.delete({ where: { id }, transaction });
+                await sequelize.query('PRAGMA foreign_keys=ON', { transaction });
+                await transaction.commit();
+            } catch (err) {
+                await transaction.rollback();
+                throw new Error(`Failed to delete Cake: ${err.message}`);
+            }
+        } else {
+            throw new Error("Unauthorized deletion");
+        }
+
+        return { message: "Data Deleted!" };
     }
 }
 

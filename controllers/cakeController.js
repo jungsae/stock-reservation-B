@@ -40,7 +40,7 @@ class CakeController {
 
     static async delete(req, res) {
         try {
-            await CakeService.delete(req.params.id);
+            await CakeService.delete(req.params.id, req.role);
             res.status(204).end();
         } catch (error) {
             res.status(500).json({ message: error.message });

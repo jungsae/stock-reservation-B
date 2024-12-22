@@ -33,7 +33,7 @@ const schemas = {
             is_active: {
                 type: DataTypes.BOOLEAN,
                 allowNull: false,
-                defaultValue: true, // 활성 상태가 기본값
+                defaultValue: true,
             },
         },
         {
@@ -94,7 +94,7 @@ const schemas = {
                 allowNull: false,
                 defaultValue: 0,
                 validate: {
-                    min: 0, // 최소값 0 설정
+                    min: 0,
                 },
             },
         },
@@ -129,18 +129,27 @@ const schemas = {
                 type: DataTypes.DATE,
                 allowNull: false,
             },
+            order_date: {
+                type: DataTypes.DATE,
+                allowNull: false,
+            },
             pickup_time: {
                 type: DataTypes.TIME,
-                allowNull: true,
-            },
-            total_price: {
-                type: DataTypes.DECIMAL(10, 2),
                 allowNull: false,
             },
             pickup_status: {
                 type: DataTypes.ENUM("pending", "picked_up", "cancelled"),
                 allowNull: false,
                 defaultValue: "pending",
+            },
+            supplies: {
+                type: DataTypes.JSON,
+                allowNull: true,
+                defaultValue: [],
+            },
+            request: {
+                type: DataTypes.TEXT,
+                allowNull: true,
             },
         },
         {
