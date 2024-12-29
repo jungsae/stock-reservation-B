@@ -57,6 +57,22 @@ class ReservationDao {
         });
     }
 
+    static async findByCakeId(cake_id) {
+        const cake = await Cake.findByPk(cake_id, {
+            include: [{
+                model: Reservation,
+                as: "reservations",
+                where: { pickup_status: 'pending' },
+                attributes: { exclude: ["updatedAt", "createdAt"] },
+                through: {
+                    attributes: ["quantity"]
+                }
+            }]
+        });
+
+        return cake ? cake.reservations : [];
+    }
+
     static async findWithCakes(id) {
         return await Reservation.findByPk(id, {
             include: [

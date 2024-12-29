@@ -8,6 +8,7 @@ const router = express.Router();
 router.get("/", authMiddleware, ReservationController.getAll);
 // 특정 매장의 예약 조회 (USER 전용)
 router.get("/store", authMiddleware, ReservationController.getStoreReservations);
+router.get("/count/:id", authMiddleware, ReservationController.getCakeCountByReservation);
 router.get("/sort", authMiddleware, ReservationController.filterReservations);
 
 router.post("/", authMiddleware, ReservationController.create);
