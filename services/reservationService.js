@@ -18,8 +18,8 @@ class ReservationService {
         return await ReservationDao.findByStoreId(store_id);
     }
 
-    static async getCakeCountByReservation(cake_id) {
-        return await ReservationDao.findByCakeId(cake_id);
+    static async getCakeCountByReservation(cake_id, store_id) {
+        return await ReservationDao.findByCakeId(cake_id, store_id);
     }
 
     static async filterReservations(store_id, filters) {

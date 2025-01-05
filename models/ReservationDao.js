@@ -57,12 +57,15 @@ class ReservationDao {
         });
     }
 
-    static async findByCakeId(cake_id) {
+    static async findByCakeId(cake_id, store_id) {
         const cake = await Cake.findByPk(cake_id, {
             include: [{
                 model: Reservation,
                 as: "reservations",
-                where: { pickup_status: 'pending' },
+                where: {
+                    pickup_status: 'pending',
+                    store_id: store_id
+                },
                 attributes: { exclude: ["updatedAt", "createdAt"] },
                 through: {
                     attributes: ["quantity"]
