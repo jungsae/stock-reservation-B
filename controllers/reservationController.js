@@ -17,7 +17,7 @@ class ReservationController {
     static async getCakeCountByReservation(req, res, next) {
         try {
             const { id } = req.params;
-            req.store_id = store_id;
+            const store_id = req.store_id;
             const cake = await ReservationService.getCakeCountByReservation(id, store_id);
             res.json({ cake });
         } catch (error) {
