@@ -43,7 +43,7 @@ class storeCakeController {
     }
 
     // 매장별 케이크 재고 업데이트
-    static async update(req, res) {
+    static async update(req, res, next) {
         try {
             const { id } = req.params;
             const { stock } = req.body;
@@ -52,8 +52,8 @@ class storeCakeController {
                 throw new CustomError("Stock is required", "INVALID_INPUT", 400);
             }
 
-            const updatedCake = await storeCakeService.updateStock(req.store_id, id, stock);
-            res.json(updatedCake);
+            await storeCakeService.updateStock(req.store_id, id, stock);
+            res.status(200).end('success');
         } catch (error) {
             next(error); // 에러 핸들러로 전달
         }

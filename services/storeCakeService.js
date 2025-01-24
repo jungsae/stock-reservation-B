@@ -1,5 +1,7 @@
 const CustomError = require("../middlewares/CustomError");
 const StoreCakeDao = require("../models/StoreCakeDao");
+const { sendNotification } = require('../routes/notification');
+const CakeDao = require("../models/CakeDao");  // 케이크 정보를 가져오기 위해 추가
 
 class storeCakeService {
     // 모든 케이크 재고 상태 조회 (ADMIN 전용)
@@ -86,7 +88,19 @@ class storeCakeService {
             throw new CustomError("해당 케이크를 수정할 권한이 없습니다.", "FORBIDDEN", 403);
         }
 
-        return await StoreCakeDao.update(store_cake_id, { stock });
+        const updatedStoreCake = await StoreCakeDao.update(store_cake_id, { stock });
+
+        // 업데이트된 케이크의 최종 재고가 0이면 SSE 알림 전송
+        if (updatedStoreCake.stock == 0 || stock == 0) {
+            const cakeInfo = await CakeDao.findById(storeCake.cake_id);
+            sendNotification({
+                cakeId: cakeInfo.id,
+                cakeName: cakeInfo.name,
+                type: "stock"
+            });
+        }
+
+        return updatedStoreCake;
     }
 
     // 케이크 재고 삭제
