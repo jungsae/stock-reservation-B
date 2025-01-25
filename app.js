@@ -9,7 +9,14 @@ const errorHandler = require("./middlewares/errorHandler");
 
 const app = express();
 
-app.use(cors());
+const corsOptions = {
+    origin: ["http://saehan.shop", "https://saehan.shop", "http://localhost:8000"],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+};
+
+app.use(cors(corsOptions));
 app.use(morgan("dev"));
 app.use(express.json());
 
