@@ -1,50 +1,30 @@
 const express = require('express');
 const router = express.Router();
-const morgan = require('morgan');
 
 // SSE 클라이언트 목록을 저장할 Set
 const clients = new Set();
-
-// SSE 전용 morgan 로깅 설정
-router.use(morgan('[:date[clf]] :method :url :status - :remote-addr - SSE Connection'));
 
 router.get('/sse', (req, res) => {
     const origin = req.headers.origin;
     const allowedOrigins = ['http://localhost:8000', 'http://saehan.shop', 'https://saehan.shop'];
 
-    // 헤더 설정 방식 변경
+    // 연결 수 제한 확인
+    if (clients.size >= 100) {
+        console.log(`[${new Date().toISOString()}] Connection rejected - Too many clients: ${clients.size}`);
+        res.status(503).end('Too many connections');
+        return;
+    }
+
+    // 헤더 설정
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.setHeader('Access-Control-Allow-Origin', allowedOrigins.includes(origin) ? origin : allowedOrigins[0]);
     res.setHeader('Access-Control-Allow-Credentials', 'true');
-
-    // 명시적으로 청크 인코딩 설정
     res.setHeader('Transfer-Encoding', 'chunked');
 
-    // 연결 유지를 위한 주기적인 ping
-    const pingInterval = setInterval(() => {
-        res.write(':\n\n');  // 커멘트 라인으로 연결 유지
-    }, 15000);  // 15초마다
-
-    // 연결 수 제한 추가
-    if (clients.size >= 100) {  // 최대 연결 수 제한
-        res.status(503).end('Too many connections');
-        return;
-    }
-
-    // 연결 시간 제한 추가
-    setTimeout(() => {
-        res.end();
-        clients.delete(res);
-        clearInterval(pingInterval);
-    }, 3600000); // 1시간 후 연결 종료
-
-    req.on('close', () => {
-        clearInterval(pingInterval);
-        clients.delete(res);
-        console.log(`[${new Date().toISOString()}] SSE client disconnected. Total clients: ${clients.size}`);
-    });
+    // 연결 시작 로그
+    console.log(`[${new Date().toISOString()}] New SSE client connected. Total clients: ${clients.size + 1}`);
 
     // 클라이언트에게 연결 확인 메시지 전송
     res.write('data: {"connection": "success"}\n\n');
@@ -52,13 +32,65 @@ router.get('/sse', (req, res) => {
     // 현재 클라이언트를 Set에 추가
     const client = res;
     clients.add(client);
-    console.log(`[${new Date().toISOString()}] New SSE client connected. Total clients: ${clients.size}`);
+
+    // 연결 유지를 위한 주기적인 ping (15초마다)
+    const pingInterval = setInterval(() => {
+        if (client.writable) {
+            res.write(':\n\n');
+        }
+    }, 15000);
+
+    // 1시간 후 연결 종료
+    const timeoutId = setTimeout(() => {
+        if (client.writeable) {
+            res.end();
+        }
+        clients.delete(client);
+        clearInterval(pingInterval);
+        console.log(`[${new Date().toISOString()}] Connection timeout - Total clients: ${clients.size}`);
+    }, 3600000);
+
+    // 에러 처리 개선
+    req.on('error', (error) => {
+        if (error.code === 'ECONNRESET') {
+            console.log(`[${new Date().toISOString()}] Client connection reset - Normal disconnection`);
+        } else {
+            console.error(`[${new Date().toISOString()}] SSE Error:`, error);
+        }
+
+        // 정리 작업
+        clients.delete(client);
+        clearInterval(pingInterval);
+        clearTimeout(timeoutId);
+    });
+
+    // 연결이 종료되면 클라이언트 제거
+    req.on('close', () => {
+        clients.delete(client);
+        clearInterval(pingInterval);
+        clearTimeout(timeoutId);
+        console.log(`[${new Date().toISOString()}] SSE client disconnected. Total clients: ${clients.size}`);
+    });
+
+    // 명시적인 에러 처리 추가
+    res.on('error', (error) => {
+        console.error(`[${new Date().toISOString()}] Response Error:`, error);
+        clients.delete(client);
+        clearInterval(pingInterval);
+        clearTimeout(timeoutId);
+    });
 });
 
-// 다른 서비스에서 알림을 보낼 때 사용할 함수
+// 알림 전송 함수
 const sendNotification = (notification) => {
+    console.log(`[${new Date().toISOString()}] 알림 전송 시작: ${clients.size}명의 클라이언트에게`);
     clients.forEach(client => {
-        client.write(`data: ${JSON.stringify(notification)}\n\n`);
+        try {
+            client.write(`data: ${JSON.stringify(notification)}\n\n`);
+        } catch (error) {
+            console.error(`[${new Date().toISOString()}] 전송 에러:`, error);
+            clients.delete(client);
+        }
     });
 };
 

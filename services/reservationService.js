@@ -141,10 +141,10 @@ class ReservationService {
             for (const storeCake of allStoreCakes) {
                 if (storeCake.stock == 0) {
                     sendNotification({
-                        store_id,
-                        cake_id: storeCake.cake_id,
+                        cakeId: storeCake.cake_id,
+                        cakeName: storeCake.cakeInfo.name,
                         type: "STOCK_EMPTY",
-                        message: `케이크 재고가 소진되었습니다.`
+                        message: `${storeCake.cakeInfo.name} 케이크 재고가 소진되었습니다.`
                     });
                 }
             }
@@ -237,11 +237,11 @@ class ReservationService {
         const filteredWithZero = allStoreCakesWithZero.filter(storeCake => storeCake.stock == 0);
         for (const storeCake of filteredWithZero) {
             sendNotification({
-                cakeId: storeCake.cake_id,
+                cake_id: storeCake.cake_id,
                 cakeName: storeCake.cakeInfo.name,
-                type: "STOCK_EMPTY"
+                type: "STOCK_EMPTY",
+                message: `${storeCake.cakeInfo.name} 케이크 재고가 소진되었습니다.`
             });
-
         }
 
         const updatedReservation = await ReservationDao.findWithCakes(reservation_id);

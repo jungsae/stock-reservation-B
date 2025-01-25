@@ -96,7 +96,8 @@ class storeCakeService {
             sendNotification({
                 cakeId: cakeInfo.id,
                 cakeName: cakeInfo.name,
-                type: "stock"
+                type: "STOCK_EMPTY",
+                message: `${cakeInfo.name} 케이크 재고가 소진되었습니다.`
             });
         }
 

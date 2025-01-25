@@ -6,6 +6,7 @@ require("dotenv").config();
 const { initialDatabase } = require("./models")
 const routes = require("./routes");
 const errorHandler = require("./middlewares/errorHandler");
+const { router: notificationRouter } = require('./routes/notification');
 
 const app = express();
 
@@ -23,7 +24,7 @@ app.use(express.json());
 app.get("/ping", (req, res) => res.json({ message: "pong" }));
 
 app.use(routes);
-
+app.use('/notifications', notificationRouter);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
