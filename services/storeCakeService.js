@@ -94,7 +94,7 @@ class storeCakeService {
         if (updatedStoreCake.stock == 0 || stock == 0) {
             const cakeInfo = await CakeDao.findById(storeCake.cake_id);
             sendNotification({
-                cakeId: cakeInfo.id,
+                cake_id: cakeInfo.id,
                 cakeName: cakeInfo.name,
                 type: "STOCK_EMPTY",
                 message: `${cakeInfo.name} 케이크 재고가 소진되었습니다.`

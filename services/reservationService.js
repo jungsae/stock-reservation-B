@@ -141,7 +141,7 @@ class ReservationService {
             for (const storeCake of allStoreCakes) {
                 if (storeCake.stock == 0) {
                     sendNotification({
-                        cakeId: storeCake.cake_id,
+                        cake_id: storeCake.cake_id,
                         cakeName: storeCake.cakeInfo.name,
                         type: "STOCK_EMPTY",
                         message: `${storeCake.cakeInfo.name} 케이크 재고가 소진되었습니다.`
